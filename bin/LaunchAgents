@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+{ set +x; } 2>/dev/null
+
+# known-issues:
+# launchd uses default $PATH
+PATH="$PATH":"${BASH_SOURCE[0]%/*}"
+export PATH="$PATH"
+
+[[ $OSTYPE != *"darwin"* ]] && echo "SKIP: OS X only" && exit 0
+
+[[ $# == 0 ]] && { "${BASH_SOURCE[0]##*/}" --help; exit 1 ; }
+
+."${BASH_SOURCE[0]##*/}"-"$1" "${@:2}"
+

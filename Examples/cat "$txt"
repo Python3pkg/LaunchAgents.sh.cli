@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+{ set +x; } 2>/dev/null
+
+txt=~/.LaunchAgents/LaunchAgents.txt
+! [ -e "$txt" ] && echo "SKIP: $txt NOT EXISTS" && exit 0
+( set -x; cat "$txt" )

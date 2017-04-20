@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+{ set +x; } 2>/dev/null
+
+usage="usage: ${BASH_SOURCE[0]##*/} plist sh"
+
+[[ $# != 2 ]] || [[ $1 == "--help" ]] && {
+	echo "$usage"
+	[[ $1 == "--help" ]]; exit # exit 0 if --help
+}
+
+# 	<key>ProgramArguments</key>
+# 	<array>
+# 		<string>/usr/local/bin/LaunchAgents</string>
+# 		<string>run</string>
+# 		<string>/Users/username/Library/LaunchAgents/name.plist</string>
+# 		<string>path/to/run.sh</string> ()
+#	</array>
+
+# BEST PRACTICES:
+# store .plist and .sh in ~/.LaunchAgents/
+# ~/.LaunchAgents/path/to/name.plist
+# ~/.LaunchAgents/path/to/run.sh
+
+# sort by USER (~/Library/LaunchAgents) and ROOT (/Library/LaunchAgents) 
+# ~/.LaunchAgents/ROOT/, ~/.LaunchAgents/USER/
+# sort by type (RunAtLoad, StartInterval, WatchPaths)
+# ~/.LaunchAgents/USER/RunAtLoad/
+# ~/.LaunchAgents/USER/StartInterval/1/
+# ~/.LaunchAgents/USER/StartInterval/10/
+# ~/.LaunchAgents/USER/StartInterval/1/
+# ~/.LaunchAgents/USER/WatchPaths/path/
+
+# generate LaunchAgents
+# plist=~/.LaunchAgents/USER/StartInterval/1/StartInterval.1.plist
+# path=~/Library/LaunchAgents/.StartInterval
+# mkdir "$path"; cd "$path"; LaunchAgents create "$plist"
+
+PLIST="$1"
+sh="$2"
+! [ -e "$sh" ] && echo "ERROR: ${sh/$HOME/~} NOT EXISTS" && exit 1
+! [ -e "$PLIST" ] && echo "ERROR: ${PLIST/$HOME/~} NOT EXISTS" && exit 1
+
+# { set -x; export PLIST="$PLIST"; { set +x; } 2>/dev/null; }
+export PLIST="$PLIST"
+# todo: $STARTINTERVAL, $LABEL
+
+# prevent duplication, run only 1 copy of bash script
+# 1) save pid to file `kill -0 $pid && exit`
+# 2) ps -ax | grep -v "grep\|$$" | grep "$sh" (slow, spam ps list)
+txt="$TMPDIR""${PLIST##*/}".txt
+[ -f "$txt" ] && {
+	pid="$(cat "$txt")"
+	kill -0 $pid 2> /dev/null && exit # already running
+}
+echo $$ > "$txt" # pid
+
+# `bash -l` source ~/.bashrc
+( bash -l "$sh" "$PLIST" ) 2>&1 # stderr to stdout
+exit=$?
+rm -f "$txt"
+exit $exit

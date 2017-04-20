@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+{ set +x; } 2>/dev/null
+
+echo "usage: LaunchAgents COMMAND [options]
+
+Available commands:
+	create		create .plist
+	delete-logs delete .log files
+	find		find .plist
+	list		launchctl list
+	load		launchctl load
+	reload		launchctl unload+load
+	unload		launchctl unload
+	rm			rm .plist"

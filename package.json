@@ -1,0 +1,66 @@
+{
+    "bin": {
+        ".LaunchAgents---help": [
+            "./bin/.LaunchAgents---help"
+        ], 
+        ".LaunchAgents-create": [
+            "./bin/.LaunchAgents-create"
+        ], 
+        ".LaunchAgents-delete-logs": [
+            "./bin/.LaunchAgents-delete-logs"
+        ], 
+        ".LaunchAgents-find": [
+            "./bin/.LaunchAgents-find"
+        ], 
+        ".LaunchAgents-list": [
+            "./bin/.LaunchAgents-list"
+        ], 
+        ".LaunchAgents-load": [
+            "./bin/.LaunchAgents-load"
+        ], 
+        ".LaunchAgents-pid": [
+            "./bin/.LaunchAgents-pid"
+        ], 
+        ".LaunchAgents-reload": [
+            "./bin/.LaunchAgents-reload"
+        ], 
+        ".LaunchAgents-rm": [
+            "./bin/.LaunchAgents-rm"
+        ], 
+        ".LaunchAgents-run": [
+            "./bin/.LaunchAgents-run"
+        ], 
+        ".LaunchAgents-stderr": [
+            "./bin/.LaunchAgents-stderr"
+        ], 
+        ".LaunchAgents-stdout": [
+            "./bin/.LaunchAgents-stdout"
+        ], 
+        ".LaunchAgents-unload": [
+            "./bin/.LaunchAgents-unload"
+        ], 
+        ".LaunchAgents-unloaded": [
+            "./bin/.LaunchAgents-unloaded"
+        ], 
+        "LaunchAgents": [
+            "./bin/LaunchAgents"
+        ], 
+        "requirements.txt": [
+            "./bin/requirements.txt"
+        ]
+    }, 
+    "description": "LaunchAgents management", 
+    "keywords": [
+        "LaunchAgents"
+    ], 
+    "name": "LaunchAgents", 
+    "readme": "<!--\nREADME generated with readmemako.py (github.com/russianidiot/readme-mako.py) and .README dotfiles (github.com/russianidiot-dotfiles/.README)\n-->\n\n<p align=\"center\">\n    <b>LaunchAgents management</b>\n</p>\n\n#### Install\n\n`[sudo] pip install LaunchAgents`\n\n`[sudo] sudo npm install -g LaunchAgents`\n\n#### Features\n* \tcreate LaunchAgents from .plist and **run.sh**\n* \t~/Library/LaunchAgents (USER) and /Library/LaunchAgents (ROOT) supported\n*\tprevents duplication, running only 1 copy of script\n*\tlaunchctl commands - list, load, unload\n*\texport variables: $PLIST\n\n#### Usage\n```bash\n# LaunchAgents --help\nusage: LaunchAgents COMMAND [options]\n\nAvailable commands:\n\tcreate\t\tcreate .plist\n\tdelete-logs delete .log files\n\tfind\t\tfind .plist\n\tlist\t\tlaunchctl list\n\tload\t\tlaunchctl load\n\treload\t\tlaunchctl unload+load\n\tunload\t\tlaunchctl unload\n\trm\t\t\trm .plist\n```\n\n#### Example\n\n```bash\n$ LaunchAgents create \"$plist\"\n\n# launchctl commands\n$ LaunchAgents load\n$ LaunchAgents unload\n$ LaunchAgents list\n```\n\n[Examples/](https://github.com/russianidiot/LaunchAgents.sh.cli/tree/master/Examples)\n\n#### Structure\n```\n# your dotfiles\n~/.LaunchAgents\n\u2514\u2500\u2500\u2500folder1/\n\u2502   \u2502   name1.plist\n\u2502   \u2502   run.sh \n\u2502\n\u2514\u2500\u2500\u2500folder2/\n    \u2502   name2.plist\n    \u2502   run.sh\n\n# `LaunchAgents create` generate .plist\n~/Library/LaunchAgents\n\u2502   .name1.plist\n\u2502   .name2.plist\n\n~/.LaunchAgents/LaunchAgents.txt - generated .plist paths\n\n.plist generated keys:\n<key>Label</key>\n<string>name</string>\n<key>ProgramArguments</key>\n<array>\n\t<string>/usr/local/bin/LaunchAgents</string>\n\t<string>run</string>\n\t<string>~/Library/LaunchAgents/.plist.sh</string>\n\t<string>~/.LaunchAgents/folder/run.sh</string>\n</array>\n```\n\n### Links\n*\tlaunchd.plist(5) Mac OS X Manual Page - [developer.apple.com/legacy/library/documentation/Darwin/Reference/ManPages/man5/launchd.plist.5.html](https://developer.apple.com/legacy/library/documentation/Darwin/Reference/ManPages/man5/launchd.plist.5.html)\n*\tlaunchctl(1) Mac OS X Manual Page - [developer.apple.com/legacy/library/documentation/Darwin/Reference/ManPages/man1/launchctl.1.html](https://developer.apple.com/legacy/library/documentation/Darwin/Reference/ManPages/man1/launchctl.1.html)\n\nFeedback\n[![GitHub issues](https://img.shields.io/github/issues/russianidiot/LaunchAgents.sh.cli.svg)](https://github.com/russianidiot/LaunchAgents.sh.cli/issues)\n[![Join the chat at https://gitter.im/russianidiot/LaunchAgents.sh.cli](https://badges.gitter.im/russianidiot/LaunchAgents.sh.cli.svg)](https://gitter.im/russianidiot/LaunchAgents.sh.cli)\n[![GitHub followers](https://img.shields.io/github/followers/russianidiot.svg?style=social&label=Follow)](https://github.com/russianidiot)", 
+    "repository": {
+        "bugs": [
+            "https://github.com/russianidiot/LaunchAgents.sh.cli/issues"
+        ], 
+        "type": "git", 
+        "url": "https://github.com/russianidiot/LaunchAgents.sh.cli"
+    }, 
+    "version": "0.0.14"
+}

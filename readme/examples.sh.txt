@@ -1,0 +1,6 @@
+$ LaunchAgents create "$plist"
+
+# launchctl commands
+$ LaunchAgents load
+$ LaunchAgents unload
+$ LaunchAgents list

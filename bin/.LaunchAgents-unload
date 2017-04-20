@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+{ set +x; } 2>/dev/null
+
+usage="usage: ${BASH_SOURCE[0]##*/}"
+
+[[ $1 == "--help" ]] && {
+	echo "$usage"
+	[[ $1 == "--help" ]]; exit # exit 0 if --help
+}
+
+list="$(launchctl list)" || exit
+find="$(LaunchAgents find)" || exit
+
+NL=$'\n'
+[[ -n "$find" ]] && while IFS= read plist; do
+	Label="$(/usr/libexec/PlistBuddy -c "Print Label" "$plist")" || exit
+	[[ "$list" != *"$Label${NL}"* ]] && {
+		echo "SKIP: $plist unloaded"
+		continue
+	}
+	( set -x; launchctl unload -w "$plist" ) || exit
+done <<< "$find";:

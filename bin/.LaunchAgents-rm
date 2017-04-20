@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+{ set +x; } 2>/dev/null
+
+usage="usage: ${BASH_SOURCE[0]##*/}"
+
+[[ $1 == "--help" ]] && {
+	echo "$usage"
+	[[ $1 == "--help" ]]; exit # exit 0 if --help
+}
+
+[[ $OSTYPE != *"darwin"* ]] && echo "SKIP: OS X only" && exit 0
+
+IFS=
+find="$(LaunchAgents find)" || exit
+[[ -z $find ]] && echo "SKIP: not found" && exit 0
+
+IFS=$'\n';set -- $find;IFS=
+( set -x; rm "$@" ) || exit

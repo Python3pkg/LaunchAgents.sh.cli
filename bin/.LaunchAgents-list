@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+{ set +x; } 2>/dev/null
+
+IFS=
+usage="usage: ${BASH_SOURCE[0]##*/} list"
+
+[[ $1 == "--help" ]] && {
+	echo "$usage"
+	[[ $1 == "--help" ]]; exit # exit 0 if --help
+}
+
+find="$(LaunchAgents find)" || exit
+[[ -z "$find" ]] && exit
+
+list="$(launchctl list)"
+
+Labels="$(while IFS= read plist; do
+	/usr/libexec/PlistBuddy -c "Print Label" "$plist"
+done <<< "$find")"
+count="$(echo "$Labels" | wc -l | tr -d ' ')"
+
+running="$(echo "$list" | grep "$Labels")"
+[[ -n "$running" ]] && {
+	count="$(echo "$running" | wc -l | tr -d ' ')"
+	echo "PID	Status	Label:
+$running"
+}
+:

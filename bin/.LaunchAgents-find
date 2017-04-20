@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+{ set +x; } 2>/dev/null
+
+usage="usage: ${BASH_SOURCE[0]##*/}"
+
+[[ $1 == "--help" ]] && {
+	echo "$usage"
+	[[ $1 == "--help" ]]; exit # exit 0 if --help
+}
+
+path=~/Library/LaunchAgents # USER, default
+[[ $UID == 0 ]] && path=/Library/LaunchAgents # ROOT
+
+! [ -e "$path" ] && echo "ERROR: $path NOT EXISTS" && exit 1
+
+IFS=
+find="$(find "$path" -type f -name "*.plist")" || exit
+[[ -z "$find" ]] && exit 0
+
+while IFS= read plist; do
+	[ -s "$plist" ] || continue
+	pattern="<string>LaunchAgents</string>\|<string>/usr/local/bin/LaunchAgents</string>" #; do
+	grep -q "$pattern" "$plist" 2> /dev/null && echo "$plist"
+done <<< "$find";:

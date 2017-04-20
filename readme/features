@@ -1,0 +1,5 @@
+* 	create LaunchAgents from .plist and **run.sh**
+* 	~/Library/LaunchAgents (USER) and /Library/LaunchAgents (ROOT) supported
+*	prevents duplication, running only 1 copy of script
+*	launchctl commands - list, load, unload
+*	export variables: $PLIST

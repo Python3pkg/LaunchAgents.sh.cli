@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+{ set +x; } 2>/dev/null
+
+usage="usage: ${BASH_SOURCE[0]##*/}"
+
+[[ $1 == "--help" ]] && {
+	echo "$usage"
+	[[ $1 == "--help" ]]; exit # exit 0 if --help
+}
+
+find="$(LaunchAgents find)" || exit
+
+[[ -n "$find" ]] && while IFS= read plist; do
+	Label="$(/usr/libexec/PlistBuddy -c "Print Label" "$plist")" || exit
+	launchctl list "$Label" &> /dev/null && continue
+	echo "$plist"
+done <<< "$find";:

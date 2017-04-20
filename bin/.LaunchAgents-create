@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+{ set +x; } 2>/dev/null
+
+usage="usage: ${BASH_SOURCE[0]##*/} path"
+
+[[ $# == 0 ]] || [[ $1 == "--help" ]] && {
+	echo "$usage"
+	[[ $1 == "--help" ]]; exit # exit 0 if --help
+}
+
+[[ $OSTYPE != *"darwin"* ]] && echo "SKIP: OS X only" && exit 0
+
+# launchd.plist keys
+# https://developer.apple.com/legacy/library/documentation/Darwin/Reference/ManPages/man5/launchd.plist.5.html
+# ExitTimeOut - unload timeout (launchctl unload plist)
+
+# known-issues:
+# 
+# sudo chown -R $USER ~/.log
+
+function PlistBuddy() {
+    { set +x; } 2>/dev/null
+
+    /usr/libexec/PlistBuddy "$@"
+}
+
+src="$1"
+[[ $src != *.plist ]] && echo "ERROR: $src
+.plist required" && exit 1
+# validate .plist
+( set -x; plutil "$src" ) || exit
+
+# name.plist
+# run.sh
+# sh="${src%/*}"/"$name".sh # name.sh
+sh="${src%/*}"/run.sh # name.sh
+! [ -f "$sh" ] && echo "ERROR: ${src##*/}
+${src/$HOME/~} EXISTS
+${sh/$HOME/~} NOT EXISTS" && exit 1
+
+basename="${src##*/}"
+Label="${basename%.*}"
+
+
+dst=~/Library/LaunchAgents/"$basename" # default
+[[ $PWD == ~/Library/LaunchAgents/* ]] && dst="$PWD/$basename" # custom
+
+[[ $UID == 0 ]] && { # ROOT
+    dst=/Library/LaunchAgents/"$basename" # default
+    [[ $PWD == /Library/LaunchAgents/* ]] && dst="$PWD/$basename" # custom
+}
+
+
+! [ -e "${dst%/*}" ] && { ( set -x; mkdir -p "${dst%/*}" ) || exit; }
+[ "$dst" -nt "$src" ] && echo "SKIP: [ $dst -nt $src ]" exit
+# ~/.LaunchAgents/name/name.plist
+# ~/.LaunchAgents/name/name.sh
+
+
+tmp="$TMPDIR"/LaunchAgents/"${dst##*/}"
+( set -x; ditto "$src" "$tmp" ) || exit
+# Label
+grep -q "<key>Label</key>" "$tmp" || {
+    ( set -x; PlistBuddy -c "Add Label string ''$Label" "$tmp" ) || exit
+}
+# ProgramArguments
+grep -q "<key>ProgramArguments</key>" "$tmp" || {
+    # bash -l ~/.LaunchAgents/sh.name.sh ~/Library/LaunchAgents/sh.name.plist
+    # -l - source ~/.bashrc, export $PATH 
+    set -- /usr/local/bin/LaunchAgents run "$dst" "$sh"
+    ( set -x; plist-array set "$tmp" ProgramArguments "$@" ) || exit
+}
+# if StandardOutPath, StandardErrorPath not exists,
+# launchd creates folder with root permissions
+# we need create it first :)
+# StandardOutPath, StandardErrorPath
+for key in StandardOutPath StandardErrorPath; do
+    grep -q "<key>$key</key>" "$tmp" || continue
+    path="$(PlistBuddy -c "Print $key" "$tmp")"
+    [[ $path != /* ]] && {
+        echo "ERROR: invalid $key:"; echo "$path"; exit 1
+    }
+    ! [ -e "${path%/*}" ] && { ( set -x; mkdir -p "${path%/*}" ) || exit; }
+done
+
+grep -q "<key>WorkingDirectory</key>" "$src" || {
+    ( set -x; PlistBuddy -c "Add WorkingDirectory string '${src%/*}'" "$tmp" ) || exit
+}
+
+( set -x; defaults import "$dst" "$tmp" ) || exit
+( set -x; plutil -convert xml1 "$dst" ) || exit
+# EnableGlobbing not supported in OSX 10.10+
+# all ~ must be replaced with $HOME
+grep -q "~" "$dst" && { ( set -x; sed -i.bak "s|~|$HOME|g" "$dst" ) || exit; }
+:
+

@@ -1,0 +1,27 @@
+# your dotfiles
+~/.LaunchAgents
+└───folder1/
+│   │   name1.plist
+│   │   run.sh 
+│
+└───folder2/
+    │   name2.plist
+    │   run.sh
+
+# `LaunchAgents create` generate .plist
+~/Library/LaunchAgents
+│   .name1.plist
+│   .name2.plist
+
+~/.LaunchAgents/LaunchAgents.txt - generated .plist paths
+
+.plist generated keys:
+<key>Label</key>
+<string>name</string>
+<key>ProgramArguments</key>
+<array>
+	<string>/usr/local/bin/LaunchAgents</string>
+	<string>run</string>
+	<string>~/Library/LaunchAgents/.plist.sh</string>
+	<string>~/.LaunchAgents/folder/run.sh</string>
+</array>

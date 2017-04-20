@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+{ set +x; } 2>/dev/null
+
+usage="usage: ${BASH_SOURCE[0]##*/}"
+
+[[ $1 == "--help" ]] && {
+	echo "$usage"
+	[[ $1 == "--help" ]]; exit # exit 0 if --help
+}
+
+find="$(LaunchAgents find)" || exit
+[[ -z $find ]] && exit
+
+[[ -n "$find" ]] && while IFS= read plist; do
+	# StandardOutPath StandardErrorPath
+	key="StandardErrorPath"
+    grep -q "<key>$key</key>" "$plist" || continue
+    path="$(/usr/libexec/PlistBuddy -c "Print $key" "$plist")"
+	! [ -f "$path" ] && continue
+	! [ -s "$path" ] && continue
+	( set -x; cat "$path" ) || exit
+done <<< "$find";:

@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+{ set +x; } 2>/dev/null
+
+usage="usage: ${BASH_SOURCE[0]##*/}"
+
+[[ $1 == "--help" ]] && {
+	echo "$usage"
+	[[ $1 == "--help" ]]; exit # exit 0 if --help
+}
+
+IFS=
+NL=$'\n'
+mkdir=
+touch=
+list="$(launchctl list)"
+find="$(LaunchAgents find)" || exit
+
+[[ -z "$find" ]] && exit
+
+# known-issues:
+# launchd creates StandardOutPath, StandardErrorPath with ROOT permissions
+# debug: find ~/.log \! -user $USER -print
+# fix1: create StandardOutPath, StandardErrorPath before load
+# fix2: sudo chown -R $USER ~/.log
+
+# 1) mkdir
+while IFS= read plist; do
+	for key in StandardOutPath StandardErrorPath; do
+		grep -q "$key" "$plist" 2> /dev/null || continue
+		path="$(/usr/libexec/PlistBuddy -c "Print $key" "$plist" 2> /dev/null)"
+		[[ -n "$path" ]] && ! [ -e "${path%/*}" ] && mkdir="$mkdir${NL}${path%/*}"
+	done
+done <<< "$find"
+[[ -n "$mkdir" ]] && {
+	mkdir="$(echo "$mkdir" | sort -u)"
+	IFS=$'\n';set $mkdir;IFS=
+	( set -x; mkdir -p "$@" ) || exit
+}
+
+# 2) touch
+while IFS= read plist; do
+	for key in StandardOutPath StandardErrorPath; do
+		grep -q "$key" "$plist" 2> /dev/null || continue
+		path="$(/usr/libexec/PlistBuddy -c "Print $key" "$plist" 2> /dev/null)"
+		! [ -e "$path" ] && touch="$touch${NL}${path%/*}"
+	done
+done <<< "$find"
+[[ -n "$touch" ]] && {
+	touch="$(echo "$touch" | sort -u)"
+	IFS=$'\n';set $touch;IFS=
+	( set -x; touch "$@" ) || exit; 
+}
+
+# 3) launchctl load
+while IFS= read plist; do
+	Label="$(/usr/libexec/PlistBuddy -c "Print Label" "$plist")" || exit
+	[[ "$list" == *"$Label${NL}"* ]] && {
+		echo "SKIP: $plist loaded"
+		continue
+	}
+	( set -x; launchctl load -w "$plist" ) || exit
+done <<< "$find";:
+
